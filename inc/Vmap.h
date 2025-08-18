@@ -1,3 +1,6 @@
+#ifndef VMAP_H
+#define VMAP_H
+
 #include "Vnode.h"
 #include "Vlinkedlist.h"
 
@@ -64,16 +67,31 @@ class Vmap{
                 }
 
                 void resize_Vmap(){
-                    vector<Vlinkedlist<T>> temp(2*this->size);
+                    Vmap<T> temp(2*this->size);
 
-                    for(int i=0;i<this->size;i++)
-                    temp[i] = this->slots[i];
-                    
-                    this->slots = temp;
-                    this->size = temp->size();
+                    for(int i=0;i<this->size;i++){
+                        if(this->slots[i].head != nullptr){
+                            Vnode<T> *aux = this->slots[i].head;
+                            while(aux != nullptr){
+                                temp.insert_Vmap(aux->key,aux->index);
+                                aux = aux->next;
+                            }
+                        }
+                    }
+
+                    this->slots = temp.slots;
+                    this->size = temp.slots.size();
                 }
 
                 void insert_Vmap(T k,int ix){
+                    
+                    int load = ((float)this->num_indexes/(float)this->size)*100;
+
+                    cout << "num indexes " << this->num_indexes << "\n";
+                    cout << "this is the load "<< load << "\n";
+
+                    if( load >= 70 )
+                    this->resize_Vmap();
 
                     int hcode = hashcode(k);
 
@@ -99,7 +117,7 @@ class Vmap{
 
                 
                 void remove_Vmap(T k){
-                    if(this.num_indexes > 0){
+                    if(this->num_indexes > 0){
                         int hcode = hashcode(k);
 
                         Vnode<T> *aux = this->slots[hcode].head;
@@ -116,7 +134,7 @@ class Vmap{
 
                         if(b){
                             if(temp == nullptr)
-                            this->slots[hcode].head = this.slots[hcode].head->next;
+                            this->slots[hcode].head = this->slots[hcode].head->next;
                             else temp->next = aux->next;
                             this->num_indexes--;
                         }
@@ -140,7 +158,7 @@ class Vmap{
                        }
                         
                         if(b)
-                        r = new Vnode<T>(aux->key,aux->ix);
+                        r = new Vnode<T>(aux->key,aux->index);
                     }
 
                     return r;
@@ -148,6 +166,9 @@ class Vmap{
 };      
 
 
+#endif
+
+/*
 int main(){
 
     int n;
@@ -170,5 +191,22 @@ int main(){
 
     vm.print_Vmap();
 
+    cout << "\n";
+
+    string d;
+    Vnode<string> *result;
+    while(true){
+      int s = vm.num_indexes;
+      cout << "Give me the entry you want to search \n";
+      cin >> d;
+      result = vm.retrieve_Vmap(d);
+      if(result == nullptr)
+      cout << "This entry does not exist \n";
+      else cout << "Your value is: "<< result->index;
+
+      cout << "\n";  
+      
+    }
+
     exit(1);
-}
+}*/
