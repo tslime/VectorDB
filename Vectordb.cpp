@@ -1,5 +1,9 @@
 #include "Ventry.h"
 #include "Metadata.h"
+#include "Vnode.h"
+#include "Vlinkedlist.h"
+#include "Vmap.h"
+#include "Metadata.h"
 
 #include<iostream>
 #include<string>
@@ -20,6 +24,24 @@ class Vectordb{
                 vector<Ventry<T>> db;
 
                 Vectordb(int s):db(s),num_vectors(0),size(s){}
+
+                void print_vectordb(){
+
+                }
+
+                void insert_vectordb(){
+
+                }
+
+                void remove_vectordb(){
+
+                }
+
+                vector<float> retrieve_vectordb(int id){
+                    vector<float> r;
+
+                    return r;
+                }
 
 };
 
