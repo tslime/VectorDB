@@ -7,13 +7,14 @@ using std::string;
 
 class Metadata{
             public:
-                string label;
-                string source;
-                int64_t timestamp;
-                float score;
+                string tag;
+                //string source;
+                //int64_t timestamp;
+                //float score;
+                bool active;
 
 
-                Metadata(string l,string s,int64_t t,float sc):label(l),source(s),timestamp(t),score(sc){}
+                Metadata(string t):tag(t),active(true){}
 };
 
 #endif

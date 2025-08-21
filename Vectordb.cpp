@@ -20,27 +20,97 @@ template<typename T>
 class Vectordb{
             public:
                 int size;
-                int num_vectors;
+                int num_entries;
+                int insert_pointer;
                 vector<Ventry<T>> db;
+                Vmap<T> imap;
+                vector<int> free_indexes;
 
-                Vectordb(int s):db(s),num_vectors(0),size(s){}
+                Vectordb(int s):db(s),num_entries(0),insert_pointer(0),size(s),imap(s){}
+
+                void print_vector(vector<float> v){
+                    cout << "[";
+                    for(int i=0;i<v.size();i++){
+                        if(i == size-1)
+                        cout << v[i] << "]";
+                        else cout << v[i] << ",";
+                    }
+                    
+                }
 
                 void print_vectordb(){
-
+                    if(this->num_entries == 0)
+                    cout << "The vector database is empty \n";
+                    else{
+                        for(int i=0;i<this->size();i++){
+                        if(this->db[i].mt == nullptr)
+                        cout << "This is slot "<< i << " and it is empty \n";
+                        else{
+                            cout << "This is slot "<< i << " and it has the following entry \n";
+                            cout << "id: " << this->db[i].id << " || vector: "<< this->print_vector(this->db[i].v) << "\n\n"; 
+                          } 
+                        }
+                    }
                 }
 
-                void insert_vectordb(){
+                void resize_vectordb(){
+                    vector<Ventry<T>> temp(2*(this->size));
 
+                    for(int i=0;i<this->size;i++)
+                    temp[i] = this->db[i];
+
+                    this->db = temp;
+                    this->size = temp.size();
                 }
 
-                void remove_vectordb(){
+                void insert_vectordb(T i,vector<float> v){ 
 
+                    if(!(this->free_indexes.empty())){
+                        int ix = this->free_indexes.pop_back();
+                        this->db[ix] = Ventry<T>(i,v);
+                        this->imap.insert_Vmap(i,ix);
+                    }else{
+                        if(this->insert_pointer >= this->size)
+                        this->resize();
+                    
+                        this->db[this->insert_pointer] = Ventry<T>(i,v);
+                        this->imap.insert_Vmap(i,insert_pointer);
+                        this->insert_pointer++;
+                    }
+            
+                    this->num_entries++;
                 }
 
-                vector<float> retrieve_vectordb(int id){
-                    vector<float> r;
+                void remove_vectordb(T i){
+                    Vnode<T> *n = this->imap.retrieve_Vmap(i);
+
+                    if(n == nullptr)
+                    cout << "This entry does not exist \n";
+                    else{
+                        this->db[n->index] =Ventry<T>();
+                        this->free_indexes.push_back(n->index);
+                        this->imap.remove_Vmap(i);
+                        this->num_entries--;
+                    }
+                }
+
+                Ventry<T> *retrieve_vectordb(T id){
+                    Ventry<T> *r = nullptr;
+
+                    Vnode<T> *temp = this->imap.retrieve_Vmap(id);
+                    if(temp != nullptr)
+                    r = new Ventry<T>(id,this->db[temp->index].v);
 
                     return r;
+                }
+
+                void update_vectordb(T id,vector<float> new_v){
+                    Vnode<T> *temp = this->imap.retrieve_Vmap(id);
+
+                    if(temp == nullptr)
+                    cout << "This entry does not exist \n";
+                    else this->db[temp->index].v = new_v;
+                    
                 }
 
 };

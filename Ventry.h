@@ -17,7 +17,8 @@ class Ventry{
                 vector<float> v;
                 Metadata *mt;
 
-                Ventry(T i,int size):v(size),id(i),mt(nullptr){}    
+                Ventry():v(0),id({}),mt(nullptr){}
+                Ventry(T i,vector<float> vector_representation):v(vector_representation),id(i),mt(new Ventry(" ",true)){}    
 };
 
 #endif
