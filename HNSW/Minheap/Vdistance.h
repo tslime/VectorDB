@@ -5,7 +5,7 @@
 
 class Vdistance{
             public:
-                int index;
+                int g_index;
                 float distance;
 
                 Vdistance():index(-1),distance(-1){}
