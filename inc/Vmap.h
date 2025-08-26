@@ -87,8 +87,8 @@ class Vmap{
                     
                     int load = ((float)this->num_indexes/(float)this->size)*100;
 
-                    cout << "num indexes " << this->num_indexes << "\n";
-                    cout << "this is the load "<< load << "\n";
+                    //cout << "num indexes " << this->num_indexes << "\n";
+                    //cout << "this is the load "<< load << "\n";
 
                     if( load >= 70 )
                     this->resize_Vmap();

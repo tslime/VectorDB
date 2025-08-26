@@ -8,8 +8,8 @@ class Vdistance{
                 int g_index;
                 float distance;
 
-                Vdistance():index(-1),distance(-1){}
-                Vdistance(int i,float d):index(i),distance(d){}
+                Vdistance():g_index(-1),distance(-1){}
+                Vdistance(int i,float d):g_index(i),distance(d){}
                     
 };
 

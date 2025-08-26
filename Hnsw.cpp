@@ -1,4 +1,7 @@
 #include "Vertex.h"
+#include "Vdistance.h"
+#include "DMinheap.h"
+
 
 #include<iostream>
 #include<malloc.h>
@@ -19,9 +22,9 @@ class Hnsw{
         public:
             int size;
             int num_vertices;
-            vector<int> vbindex_list;
+            vector<bool> vbindex_list;
             vector<Vertex> g_index;
-            Vertex entry_point;
+            int entry_point;
 
             
             Hnsw(int s):size(s),num_vertices(0),g_index(s),entry_point(){}
@@ -47,22 +50,32 @@ class Hnsw{
             }
 
             void insert_hnsw(int v_index){
-                    if(v_index >= g_index.size()){
-                        if(this->vbindex_list[v_index] != -1)
-                        cout << "This vb index already exists \n";
-                        else{
-                            Vertex v = Vertex(v_index,this->random_level(),16);
-                            if(num_vertices == 0){
-                                g_index[this->num_vertices] = v;
+                int max_level = this->random_level();
+                int c_max_level = 0;
+
+                if(v_index >= (this->vbindex_list).size() || !(this->vbindex_list[v_index])){
+                      Vertex v = Vertex(v_index,max_level,16);
+                            if(this->num_vertices == 0){
+                                this->g_index[this->num_vertices] = v;
+                                this->entry_point = 0;
                                 this->num_vertices++;
                             }else{
-                                cout << "test\n";
+                                  c_max_level = (this->g_index[this->entry_point]).level;
+                                  int i = max_level;
+                                  while( c_max_level > 0){
+                                    if(c_max_level > i)
+                                    c_max_level--;
+                                    else if(c_max_level < i)
+                                         i--;
+                                        else{
+                                            
+                                        }
+                                  }
+
                             }
-
-                        }
-                    }
-
-
+                            
+                }else cout << "This vertex already exists \n";
+                        
             }
             
 };
