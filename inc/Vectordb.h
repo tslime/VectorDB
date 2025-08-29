@@ -1,3 +1,6 @@
+#ifndef VECTORDB_H
+#define VECTORDB_H
+
 #include "Ventry.h"
 #include "Metadata.h"
 #include "Vnode.h"
@@ -110,9 +113,8 @@ class Vectordb{
                     cout << "This entry does not exist \n";
                     else{
                         this->db[n->index] = Ventry<T>();
-                        auto i = find(free_indexes.begin(),free_indexes.end(),n->index);
-                        this->free_indexes.erase(i);
-                        this->imap.remove_Vmap(i);
+                        this->free_indexes.push_back(n->index);
+                        this->imap.remove_Vmap(n->key);
                         this->num_entries--;
                     }
                 }
@@ -133,10 +135,12 @@ class Vectordb{
                     if(temp == nullptr)
                     cout << "This entry does not exist \n";
                     else this->db[temp->index].v = new_v;
-                    
                 }
-
 };
+
+#endif
+
+/*
 
 int main(){
 
@@ -148,7 +152,7 @@ int main(){
     cout <<"Give me your entries: \n";
     int i = 0;
     string name;
-    while(i < n){
+    while(i < 3){
         cin >> name;
         vdb.insert_vectordb(name,vdb.vector_generator_3D(0.0f,1.0f));
         i++;
@@ -161,5 +165,55 @@ int main(){
 
     cout << "\n";
 
+    vdb.imap.print_Vmap();
+
+    cout << "\n";
+    
+    int y = 0;
+    string id;
+    while(true){
+        /*
+        int t = vdb.num_entries;
+        cout << "Would you like to remove an entry yes=1/no=0 \n";
+        cin >> y;
+
+        if(y){
+            cout << "Give me the id of the entry that you would like to remove:\n";
+            cin >> id;
+            vdb.remove_vectordb(id);
+        }
+
+        if(vdb.num_entries < t){
+            cout << "\n";
+            vdb.print_vectordb();
+            cout << "\n";
+            vdb.imap.print_Vmap();
+        }
+        
+        
+        
+        cout <<"\n";
+        cout << "Give me another entry: \n";
+        cin >> name;
+        Ventry<string> *aux = vdb.retrieve_vectordb(name);
+        if(aux == nullptr)
+        cout << "This entry does not exist \n";
+        else{
+            cout << "This entry's ID is: " << aux->id << " and its vector is: ";
+            vdb.print_vector(aux->v);
+            cout << "\n";
+        } 
+        cout << "\n";
+
+        vdb.print_vectordb();
+
+        cout << "\n";
+        vdb.imap.print_Vmap();
+        cout << "\n";
+
+    }
+
+    cout << "\n";
+
     exit(1);
-}
+}*/

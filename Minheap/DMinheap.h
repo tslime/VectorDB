@@ -74,7 +74,7 @@ class DMinheap{
                     Vdistance *r = nullptr;
 
                     if(this->num_elements > 0){
-                        r = new Vdistance(this->Minds[0].g_index,this->Minds[0].distance);
+                        r = new Vdistance(this->Minds[0].vertex_index,this->Minds[0].distance);
                         this->Minds[0] = this->Minds[this->num_elements-1];
                         this->Minds[this->num_elements] = Vdistance();
                         this->num_elements--;

@@ -1,6 +1,12 @@
 #include "Vertex.h"
 #include "Vdistance.h"
 #include "DMinheap.h"
+#include "Metadata.h"
+#include "Vnode.h"
+#include "Vlinkedlist.h"
+#include "Vmap.h"
+#include "Ventry.h"
+#include "Vectordb.h"
 
 
 #include<iostream>
@@ -17,7 +23,7 @@ using std::floor;
 using std::uniform_real_distribution;
 using std::mt19937;
 
-
+template<typename T>
 class Hnsw{
         public:
             int size;
@@ -26,8 +32,10 @@ class Hnsw{
             vector<Vertex> g_index;
             int entry_point;
 
-            
-            Hnsw(int s):size(s),num_vertices(0),g_index(s),entry_point(){}
+            Vectordb<string> vector_db;
+            DMinheap dmin;
+
+            Hnsw(int s):size(s),num_vertices(0),g_index(s),vector_db(s),dmin(s),entry_point(0){}
             
             int random_level(){
                 mt19937 gen(std::random_device{}());
@@ -49,33 +57,58 @@ class Hnsw{
                     return sqrt(cumulative_sum);
             }
 
-            void insert_hnsw(int v_index){
-                int max_level = this->random_level();
+            void insert_hnsw(T id,vector<float> v){
+                int vx_max_level = this->random_level();
                 int c_max_level = 0;
 
-                if(v_index >= (this->vbindex_list).size() || !(this->vbindex_list[v_index])){
-                      Vertex v = Vertex(v_index,max_level,16);
-                            if(this->num_vertices == 0){
-                                this->g_index[this->num_vertices] = v;
-                                this->entry_point = 0;
-                                this->num_vertices++;
-                            }else{
-                                  c_max_level = (this->g_index[this->entry_point]).level;
-                                  int i = max_level;
-                                  while( c_max_level > 0){
-                                    if(c_max_level > i)
-                                    c_max_level--;
-                                    else if(c_max_level < i)
-                                         i--;
-                                        else{
-                                            
-                                        }
-                                  }
+                Ventry<T> *temp = this->vector_db.retrieve_vectordb(id);
+                if(temp == nullptr) 
+                cout << "This entry already exists \n";
+                else{
+                    this->vdb.insert_vectordb(id,v);
+                    int index = this->vdb.insert_pointer - 1;
+                    Vertex vx = Vertex(index,vx_max_level,16);
+                    if(this->num_vertices == 0){
+                        this->g_index[this->num_vertices] = vx;
+                        this->num_entries++;
+                    }else{
+                        int i = this->g_index[this->entry_point].level;
+                        float min_dist = this->euclidean_distance(this->vector_db.db[this->g_index[this->entry_point].vdb_index].v,v);
+                        Vdistance e = Vdistance(this->entry_point,min_dist);
+                        int temp_d;
 
+                        while(i >= 1){
+                            for(int j=0;j < this->g_index[this->entry_point].layers[i].size();j++){
+                                temp_d = this->euclidean_distance(this->vector_db.db[this->g_index[this->g_index[this->entry_point].layers[i][j]].vdb_index].v,v); 
+                                if(temp_d < min_dist){
+                                    min_dist = temp_d;
+                                    e = Vdistance(this->g_index[this->entry_point].layers[i][j],min_dist);
+                                }
                             }
+
+                            i--;
+                        }
+
+                        dmin.insert_DMinheap(e.vertex_index,e.distance);
+                        while(i < this->g_index[e.vertex_index].level){
+                            int k = 0;
+                            while(k < this->g_index[e.vertex_index].layers[i].size() ){
+                                temp_d = this->euclidean_distance(this->vector_db.db[this->g_index[this->g_index[e.vertex_index].layers[i][k]].vdb_index].v,v);
+                                e = Vdistance(this->g_index[e.vertex_index].layers[i][k],temp_d);
+                                k++;
+                            }
+
+                            //fill-up layer
                             
-                }else cout << "This vertex already exists \n";
-                        
+                           
+                           i++;
+                        }
+
+
+                    }
+                }
+
+                
             }
             
 };

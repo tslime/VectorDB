@@ -5,11 +5,11 @@
 
 class Vdistance{
             public:
-                int g_index;
+                int vertex_index;
                 float distance;
 
-                Vdistance():g_index(-1),distance(-1){}
-                Vdistance(int i,float d):g_index(i),distance(d){}
+                Vdistance():vertex_index(-1),distance(-1){}
+                Vdistance(int i,float d):vertex_index(i),distance(d){}
                     
 };
 
