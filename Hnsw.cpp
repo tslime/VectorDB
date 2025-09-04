@@ -143,7 +143,6 @@ class Hnsw{
             DMinheap collect_vertices(Vdistance minv,vector<float> new_v,int la,int efConstruction){
                 DMinheap result(this->num_vertices);
                 
-                this->dmin.insert_DMinheap(minv.vertex_index,minv.distance);
                 this->computed_and_push(minv.vertex_index,la,new_v);
 
                 int i = 0;
@@ -160,6 +159,10 @@ class Hnsw{
 
             void fill_layers(DMinheap h,Vertex& new_v,int la,int la_M){
                 
+               // h.print_DMinheap();
+                
+                //cout << "\n\n";
+
                 int i = 0;
                 Vdistance *e;
                 while(h.num_elements > 0 && i < la_M){
@@ -191,6 +194,8 @@ class Hnsw{
                     }else{
                         int min_l = 0;
                         Vdistance min_d_v = this->greedy_descent(this->entry_point,v);
+                        this->dmin.insert_DMinheap(min_d_v.vertex_index,min_d_v.distance);
+                        this->visited_vlist[min_d_v.vertex_index] = true;
 
                         if(this->vgraph[min_d_v.vertex_index].layers.size() >= vx.layers.size())
                         min_l = vx.layers.size();
@@ -212,6 +217,14 @@ class Hnsw{
                 }
             }
 };
+
+
+vector<float> search_hnsw(){
+    vector<float> v;
+
+
+    return v;
+}
 
 
 
@@ -240,7 +253,7 @@ int main(){
     vg.print_hnsw();
     cout << "\n";
 
-    //vg.vector_db.print_vectordb();
+    vg.vector_db.print_vectordb();
 
-    //cout << "\n";
+    cout << "\n";
 }
