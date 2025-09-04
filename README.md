@@ -41,6 +41,39 @@ It builds a **multi-layer graph** where:
 
 This structure balances **speed and recall**, and scales to millions of vectors.
 
+### 🔍 Design Note: Heap Strategy in `collect_vertices`
+
+In the original HNSW paper by Malkov & Yashunin (2018), the neighbor collection at layer 0 was implemented using **two separate heaps**:
+
+- A **candidate priority queue** (min-heap by distance).
+- A **result set** (max-heap, bounded by `efConstruction`).
+
+**Algorithm (Malkov’s design):**
+1. Push the entry point into both heaps.
+2. Pop the closest element from the candidate heap.
+3. Explore its neighbors.
+4. If a neighbor is closer than the farthest in the result set, insert it into both heaps.
+5. Repeat until the candidate queue is empty or stable.
+
+This works well in practice (especially with larger `efConstruction`), but has a subtle limitation:  
+a candidate may be pushed into the result set *before* its closer neighbors are discovered, leading to slightly “noisy” results.
+
+
+### Current Approach (Improved Heap Design)
+
+In this implementation, I simplify the process by using a **single min-heap** owned by the class:
+
+- When an element is popped, its neighbors are explored and pushed if valid.
+- The popped element is then **reinserted** into the same heap.
+- This ensures that the heap always reflects the *true closest elements* at every step.
+
+**Advantages:**
+- Eliminates the need for a separate result heap.
+- Prevents premature acceptance of suboptimal candidates.
+- Keeps the top of the heap always aligned with the best current neighbor.
+
+Effectively, this turns neighbor collection into a continuous **best-first search**, making the algorithm both simpler and conceptually cleaner, while maintaining the same guarantees as the original design.
+
 
 ## Usage
 
@@ -57,3 +90,5 @@ vg.insert_hnsw("toto", t2);
 
 vector<float> t3 = vg.vector_generator_3D(0.0f, 1.0f);
 vg.insert_hnsw("lulu", t3);
+
+
