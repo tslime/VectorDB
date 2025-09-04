@@ -1,7 +1,6 @@
 # VectorDB (from Scratch with HNSW)
 
-VectorDB is a **vector database** implementation written in C++ that supports approximate nearest neighbor (ANN) search using the **Hierarchical Navigable Small World (HNSW)** algorithm.  
-It is designed from the ground up with no third-party ANN libraries, to provide a clean, educational, and extensible implementation of modern ANN techniques.  
+VectorDB is a **vector database** implementation written in C++ that supports approximate nearest neighbor (ANN) search using the **Hierarchical Navigable Small World (HNSW)** algorithm. It is designed from the ground up with no third-party ANN libraries, to provide a clean, educational, and extensible implementation of modern ANN techniques.  
 
 
 ## Features
