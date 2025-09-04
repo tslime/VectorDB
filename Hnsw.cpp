@@ -31,12 +31,13 @@ class Hnsw{
             vector<bool> vbindex_list;
             vector<Vertex> vgraph;
             vector<bool> visited_vlist;
+            vector<bool> deleted_vlist;
             int entry_point;
 
             Vectordb<T> vector_db;
             DMinheap dmin;
 
-            Hnsw(int s):size(s),num_vertices(0),vgraph(s),vector_db(s),visited_vlist(s),dmin(s),entry_point(0){}
+            Hnsw(int s):size(s),num_vertices(0),vgraph(s),vector_db(s),visited_vlist(s),deleted_vlist(s),dmin(s),entry_point(0){}
 
             void print_hnsw(){
                 if(this->num_vertices == 0)
@@ -230,6 +231,20 @@ class Hnsw{
             }
 
             return r;
+        }
+
+
+        void soft_deletion(int v_index){
+            if(v_index >= this->size || v_index >= this->num_vertices)
+            cout << "This vertex does not exist \n";
+            else if(this->deleted_vlist[v_index])
+                 cout << "This vertex is already deleted \n";
+                 else{
+                    int retrieve_vectordb_index = this->vgraph[v_index].vdb_index;
+                    T retrieve_id = this->vector_db.db[retrieve_vectordb_index].id;
+                    this->vector_db.remove_vectordb(retrieve_id);
+                    this->deleted_vlist[v_index] = true;
+                 }
         }
 
 };
