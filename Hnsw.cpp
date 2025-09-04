@@ -140,24 +140,21 @@ class Hnsw{
                 }
             }
 
-            void collect_vertices(Vdistance minv,vector<float> new_v,int la,int efConstruction){
-                //DMinheap result(this->num_vertices);
+            void collect_vertices(Vdistance minv,vector<float> new_v,int la,int ef_var){
                 
                 this->computed_and_push(minv.vertex_index,la,new_v);
 
                 int i = 0;
-                while(i < efConstruction && this->dmin.num_elements > 0){
+                while(i < ef_var && this->dmin.num_elements > 0){
                     Vdistance *t = this->dmin.pop_DMinheap();
-                    //result.insert_DMinheap(t->vertex_index,t->distance);
                     this->computed_and_push(t->vertex_index,la,new_v); 
                     this->dmin.insert_DMinheap(t->vertex_index,t->distance);   
                     i++;
                 }
-    
-                //return result;
+
             }
 
-            //DMinheap h,
+            
             void fill_layers(Vertex& new_v,int la,int la_M){
                 
                 int i = 0;
@@ -172,11 +169,9 @@ class Hnsw{
                 }
             }
 
-            void insert_hnsw(T id,vector<float> v){
+            void insert_hnsw(T id,vector<float> v,int efConstruction){
                 int vx_max_level = this->random_level();
                 int c_max_level = 0;
-
-                //cout << "Max layers is: "<< vx_max_level << "\n";
 
                 Ventry<T> *temp = this->vector_db.retrieve_vectordb(id);
                 if(temp != nullptr) 
@@ -200,7 +195,7 @@ class Hnsw{
 
                         int i = 0;
                         while(i < min_l){
-                            this->collect_vertices(min_d_v,this->vector_db.db[this->vector_db.insert_pointer-1].v,i,100);
+                            this->collect_vertices(min_d_v,this->vector_db.db[this->vector_db.insert_pointer-1].v,i,efConstruction);
                             this->fill_layers(vx,i,16);
                             i++;
                         }
@@ -214,9 +209,9 @@ class Hnsw{
                 }
             }
 
-/*
-        vector<float> search_hnsw(vector<float> v){
-            vector<float> r;
+
+        vector<int> search_hnsw(vector<float> v,int k,int efSearch){
+            vector<int> r;
 
             if(this->num_vertices == 0)
             cout << "The graph is empty \n";
@@ -224,12 +219,18 @@ class Hnsw{
                 Vdistance candidate_e = this->greedy_descent(this->entry_point,v);
                 this->dmin.insert_DMinheap(candidate_e.vertex_index,candidate_e.distance);
                 this->visited_vertices[candidate_e.vertex_index] = true;
-
-
+                
+                this->collect_vertices(candidate_e.vertex_index,0,v,efSearch);
+                int i = 0;
+                while(this->dmin.num_elements > 0 && i < k){
+                    Vdistance *x = this->dmin.pop_DMinheap();
+                    r.push_back(x->vertex_index);
+                    i++;
+                }
             }
 
             return r;
-        }*/
+        }
 
 };
 
@@ -247,15 +248,15 @@ int main(){
 
     vector<float> t1 = vg.vector_db.vector_generator_3D(0.0f,1.0f);
 
-    vg.insert_hnsw("coco",t1);
+    vg.insert_hnsw("coco",t1,100);
 
     vector<float> t2 = vg.vector_db.vector_generator_3D(0.0f,1.0f);
 
-    vg.insert_hnsw("toto",t2);
+    vg.insert_hnsw("toto",t2,100);
 
     vector<float> t3 = vg.vector_db.vector_generator_3D(0.0f, 1.0f);
     
-    vg.insert_hnsw("lulu", t3);
+    vg.insert_hnsw("lulu", t3,100);
 
 
     cout << "\n";
