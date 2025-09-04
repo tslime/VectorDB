@@ -29,30 +29,30 @@ class Hnsw{
             int size;
             int num_vertices;
             vector<bool> vbindex_list;
-            vector<Vertex> g_index;
+            vector<Vertex> vgraph;
             vector<bool> visited_vlist;
             int entry_point;
 
-            Vectordb<string> vector_db;
+            Vectordb<T> vector_db;
             DMinheap dmin;
 
-            Hnsw(int s):size(s),num_vertices(0),g_index(s),vector_db(s),visited_vlist(s),dmin(s),entry_point(0){}
+            Hnsw(int s):size(s),num_vertices(0),vgraph(s),vector_db(s),visited_vlist(s),dmin(s),entry_point(0){}
 
             void print_hnsw(){
                 if(this->num_vertices == 0)
-                cout << "The hnsw graph is emtpy \n";
+                cout << "The hnsw graph is empty \n";
                 else{
-                    for(int i=0;i<num_vertices;i++){
-                        cout << "Vertex "<< i <<" with vdb_index "<< this->g_index[i].vdb_index << " and layers: \n";
-                        for(int j=0;j<this->g_index[i].layers.size();j++){
+                    for(int i=0;i<this->num_vertices;i++){
+                        cout << "Vertex "<< i <<" with vdb_index "<< this->vgraph[i].vdb_index << " and layers: \n";
+                        for(int j=0;j<this->vgraph[i].layers.size();j++){
                             
-                            if(this->g_index[i].layers[j].size() == 0)
+                            if(this->vgraph[i].layers[j].size() == 0)
                             cout << "Layer "<< j << " empty \n";
                             else{
                                 cout << "Layer "<< j <<" with indices: ";
                                 int k = 0;
-                                while(k < this->g_index[i].layers[j].size()){
-                                    cout << this->g_index[i].layers[j][k] << " "; 
+                                while(k < this->vgraph[i].layers[j].size()){
+                                    cout << this->vgraph[i].layers[j][k] << " "; 
                                     k++;
                                 }
                                 cout << "\n";
@@ -64,10 +64,10 @@ class Hnsw{
             }
             
             int random_level(){
-                mt19937 gen(std::random_device{}());
-                uniform_real_distribution<> udis(0.0,1.0);
+                static thread_local mt19937 gen(std::random_device{}());
+                static thread_local uniform_real_distribution<> udis(0.0,1.0);
                 double ud = udis(gen);
-                int num_layers = floor((-1)*log(ud)*(1/log(16)));
+                int num_layers = (int)floor(-log(ud)*(1/log(16)));
 
                 return num_layers;
             }
@@ -101,20 +101,21 @@ class Hnsw{
 
             Vdistance greedy_descent(int e_point,vector<float> new_v){
 
-                int i = this->g_index[e_point].level;
-                int evdb_index = this->g_index[e_point].vdb_index;
+                int i = this->vgraph[e_point].level-1;
+                int entry_vdb_index = this->vgraph[e_point].vdb_index;
 
-                float min_dist = this->euclidean_distance(this->vector_db.db[evdb_index].v,new_v);
+                float min_dist = this->euclidean_distance(this->vector_db.db[entry_vdb_index].v,new_v);
                 Vdistance e = Vdistance(e_point,min_dist);
                 int temp_d;
 
+                int recover_vdb_index;
                 while(i >= 1){
-                    for(int j=0;j < this->g_index[e_point].layers[i].size();j++){
-                    int recover_vdb_index = this->g_index[this->g_index[e_point].layers[i][j]].vdb_index;
+                    for(int j=0;j < this->vgraph[e_point].layers[i].size();j++){
+                    recover_vdb_index = this->vgraph[this->vgraph[e_point].layers[i][j]].vdb_index;
                     temp_d = this->euclidean_distance(this->vector_db.db[recover_vdb_index].v,new_v); 
                     if(temp_d < min_dist){
                         min_dist = temp_d;
-                        e = Vdistance(this->g_index[e_point].layers[i][j],min_dist);
+                        e = Vdistance(this->vgraph[e_point].layers[i][j],min_dist);
                             }
                         }
 
@@ -128,12 +129,12 @@ class Hnsw{
                 int recover_vdb_index;
 
                 int i = 0;
-                while(i < this->g_index[e].layers[la].size()){
-                    if( !(this->visited_vlist[this->g_index[e].layers[la][i]])){
-                    this->visited_vlist[this->g_index[e].layers[la][i]] = true;
-                    recover_vdb_index = this->g_index[this->g_index[e].layers[la][i]].vdb_index;
+                while(i < this->vgraph[e].layers[la].size()){
+                    if( !(this->visited_vlist[this->vgraph[e].layers[la][i]])){
+                    this->visited_vlist[this->vgraph[e].layers[la][i]] = true;
+                    recover_vdb_index = this->vgraph[this->vgraph[e].layers[la][i]].vdb_index;
                     temp_distance = this->euclidean_distance(this->vector_db.db[recover_vdb_index].v,new_v);
-                    this->dmin.insert_DMinheap(this->g_index[e].layers[la][i],temp_distance);
+                    this->dmin.insert_DMinheap(this->vgraph[e].layers[la][i],temp_distance);
                     }
                     i++;
                 }
@@ -157,15 +158,16 @@ class Hnsw{
             }
 
 
-            void fill_layers(DMinheap h,Vertex new_v,int la,int la_M){
+            void fill_layers(DMinheap h,Vertex& new_v,int la,int la_M){
                 
                 int i = 0;
-                Vdistance e;
+                Vdistance *e;
                 while(h.num_elements > 0 && i < la_M){
                     e = h.pop_DMinheap();
-                    new_v.layers[la].push_back(e.vertex_index);
-                    if(this->g_index[e.vertex_index].layers[la].size() < 16)
-                    this->g_index[e.vertex_index].layers[la].push_back(this->num_vertices-1);
+                    new_v.layers[la].push_back(e->vertex_index);
+                    if(this->vgraph[e->vertex_index].layers[la].size() < la_M)
+                    this->vgraph[e->vertex_index].layers[la].push_back(this->num_vertices);
+
                     i++;
                 }
             }
@@ -174,35 +176,37 @@ class Hnsw{
                 int vx_max_level = this->random_level();
                 int c_max_level = 0;
 
+                //cout << "Max layers is: "<< vx_max_level << "\n";
+
                 Ventry<T> *temp = this->vector_db.retrieve_vectordb(id);
-                if(temp == nullptr) 
+                if(temp != nullptr) 
                 cout << "This entry already exists \n";
                 else{
                     this->vector_db.insert_vectordb(id,v);
                     int index = this->vector_db.insert_pointer - 1;
                     Vertex vx = Vertex(index,vx_max_level,16);
                     if(this->num_vertices == 0){
-                        this->g_index[this->num_vertices] = vx;
-                        this->num_entries++;
+                        this->vgraph[this->num_vertices] = vx;
+                        this->num_vertices++;
                     }else{
                         int min_l = 0;
-                        Vdistance minv = this->greedy_descent(this->entry_point,v);
-                        
-                        if(this->g_index[minv.vertex_index].layers.size() >= vx.layers.size())
+                        Vdistance min_d_v = this->greedy_descent(this->entry_point,v);
+
+                        if(this->vgraph[min_d_v.vertex_index].layers.size() >= vx.layers.size())
                         min_l = vx.layers.size();
-                        else min_l = this->g_index[minv.vertex_index].layers.size();
+                        else min_l = this->vgraph[min_d_v.vertex_index].layers.size();
 
                         int i = 0;
                         while(i < min_l){
-                            DMinheap r = this->collect_vertices(this->dmin,this->vector_db.db[this->vector_db.insert_pointer-1].v,i,100);
+                            DMinheap r = this->collect_vertices(min_d_v,this->vector_db.db[this->vector_db.insert_pointer-1].v,i,100);
                             this->fill_layers(r,vx,i,16);
                             i++;
                         }
 
-                        if(vx.layers.size() > this->g_index[this->entry_point].layers.size())
+                        if(vx.layers.size() > this->vgraph[this->entry_point].layers.size())
                         this->entry_point = this->num_vertices - 1;
                     
-                        this->g_index[this->num_vertices] = vx;
+                        this->vgraph[this->num_vertices] = vx;
                         this->num_vertices++;
                     }
                 }
@@ -212,6 +216,31 @@ class Hnsw{
 
 
 int main(){
+    
+    int n;
+    cout << "Give me the size of your graph \n";
+    cin >> n;
+    Hnsw<string> vg(n);
+    cout << "\n";
 
-    cout << "test \n";
+    vector<float> t1 = vg.vector_db.vector_generator_3D(0.0f,1.0f);
+
+    vg.insert_hnsw("coco",t1);
+
+    vector<float> t2 = vg.vector_db.vector_generator_3D(0.0f,1.0f);
+
+    vg.insert_hnsw("toto",t2);
+
+    vector<float> t3 = vg.vector_db.vector_generator_3D(0.0f, 1.0f);
+    
+    vg.insert_hnsw("lulu", t3);
+
+
+    cout << "\n";
+    vg.print_hnsw();
+    cout << "\n";
+
+    //vg.vector_db.print_vectordb();
+
+    //cout << "\n";
 }
