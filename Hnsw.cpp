@@ -140,33 +140,30 @@ class Hnsw{
                 }
             }
 
-            DMinheap collect_vertices(Vdistance minv,vector<float> new_v,int la,int efConstruction){
-                DMinheap result(this->num_vertices);
+            void collect_vertices(Vdistance minv,vector<float> new_v,int la,int efConstruction){
+                //DMinheap result(this->num_vertices);
                 
                 this->computed_and_push(minv.vertex_index,la,new_v);
 
                 int i = 0;
                 while(i < efConstruction && this->dmin.num_elements > 0){
                     Vdistance *t = this->dmin.pop_DMinheap();
-                    result.insert_DMinheap(t->vertex_index,t->distance);
-                    this->computed_and_push(t->vertex_index,la,new_v);    
+                    //result.insert_DMinheap(t->vertex_index,t->distance);
+                    this->computed_and_push(t->vertex_index,la,new_v); 
+                    this->dmin.insert_DMinheap(t->vertex_index,t->distance);   
                     i++;
                 }
     
-                return result;
+                //return result;
             }
 
-
-            void fill_layers(DMinheap h,Vertex& new_v,int la,int la_M){
+            //DMinheap h,
+            void fill_layers(Vertex& new_v,int la,int la_M){
                 
-               // h.print_DMinheap();
-                
-                //cout << "\n\n";
-
                 int i = 0;
                 Vdistance *e;
-                while(h.num_elements > 0 && i < la_M){
-                    e = h.pop_DMinheap();
+                while(this->dmin.num_elements > 0 && i < la_M){
+                    e = this->dmin.pop_DMinheap();
                     new_v.layers[la].push_back(e->vertex_index);
                     if(this->vgraph[e->vertex_index].layers[la].size() < la_M)
                     this->vgraph[e->vertex_index].layers[la].push_back(this->num_vertices);
@@ -203,8 +200,8 @@ class Hnsw{
 
                         int i = 0;
                         while(i < min_l){
-                            DMinheap r = this->collect_vertices(min_d_v,this->vector_db.db[this->vector_db.insert_pointer-1].v,i,100);
-                            this->fill_layers(r,vx,i,16);
+                            this->collect_vertices(min_d_v,this->vector_db.db[this->vector_db.insert_pointer-1].v,i,100);
+                            this->fill_layers(vx,i,16);
                             i++;
                         }
 
@@ -216,15 +213,27 @@ class Hnsw{
                     }
                 }
             }
+
+/*
+        vector<float> search_hnsw(vector<float> v){
+            vector<float> r;
+
+            if(this->num_vertices == 0)
+            cout << "The graph is empty \n";
+            else{
+                Vdistance candidate_e = this->greedy_descent(this->entry_point,v);
+                this->dmin.insert_DMinheap(candidate_e.vertex_index,candidate_e.distance);
+                this->visited_vertices[candidate_e.vertex_index] = true;
+
+
+            }
+
+            return r;
+        }*/
+
 };
 
 
-vector<float> search_hnsw(){
-    vector<float> v;
-
-
-    return v;
-}
 
 
 
